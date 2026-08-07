@@ -58,6 +58,7 @@ jobs:
       - name: Setup Nucleus (GraalVM)
         uses: NucleusFramework/Nucleus/.github/actions/setup-nucleus@v2.3.0
         with:
+          java-version: '21'
           graalvm: 'true'
 
       - name: Build GraalVM native packages
