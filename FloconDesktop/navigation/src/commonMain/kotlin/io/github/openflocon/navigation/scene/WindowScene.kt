@@ -4,10 +4,12 @@ package io.github.openflocon.navigation.scene
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.rememberWindowState
+import androidx.compose.ui.window.WindowPlacement
+import androidx.compose.ui.window.WindowPosition
+import androidx.compose.ui.window.WindowState
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavMetadataKey
 import androidx.navigation3.runtime.get
@@ -16,6 +18,8 @@ import androidx.navigation3.scene.OverlayScene
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.scene.SceneStrategy
 import androidx.navigation3.scene.SceneStrategyScope
+import androidx.compose.ui.Alignment
+import dev.nucleusframework.application.HostedWindow
 import io.github.openflocon.navigation.FloconRoute
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -33,14 +37,22 @@ data class WindowScene(
 
     override val content: @Composable (() -> Unit) = {
         val windowProperties = entry.metadata[WindowPropertiesKey]
+        val size = windowProperties?.size ?: DpSize(800.dp, 600.dp)
+        val title = windowProperties?.title.orEmpty()
+        val state = remember(size) {
+            WindowState(
+                placement = WindowPlacement.Floating,
+                position = WindowPosition(Alignment.Center),
+                size = size,
+            )
+        }
 
-        val state = rememberWindowState(
-            size = windowProperties?.size ?: DpSize(800.dp, 600.dp),
-        )
-        Window(
+        // Nucleus 2.3.2+: HostedWindow → LocalNucleusWindowHost (DecoratedWindow by
+        // default; app may override with Material / Flocon chrome).
+        HostedWindow(
             onCloseRequest = onBack,
             state = state,
-            title = windowProperties?.title ?: "",
+            title = title,
         ) {
             entry.Content()
         }
@@ -77,4 +89,4 @@ data class WindowProperties(
     val isWindow: Boolean = true
 }
 
-private object WindowPropertiesKey: NavMetadataKey<WindowProperties>
+private object WindowPropertiesKey : NavMetadataKey<WindowProperties>

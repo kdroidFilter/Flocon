@@ -1,7 +1,6 @@
 package io.github.openflocon.flocondesktop.app.ui.view.topbar
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -43,9 +42,7 @@ fun MainScreenTopBar(
     onRestartClicked: () -> Unit,
 ) {
     Row(
-        modifier = modifier
-            .background(FloconTheme.colorPalette.surface)
-            .padding(vertical = 8.dp, horizontal = 12.dp),
+        modifier = modifier.padding(vertical = 4.dp, horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Title()

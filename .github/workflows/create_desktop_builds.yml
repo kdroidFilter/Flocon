@@ -1,86 +1,54 @@
+# Manual GraalVM package build (no publish) — same build pattern as release.yml.
 name: Build Desktop App
 
 on:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   build:
+    name: GraalVM - ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - os: macos-15-intel   # runner Intel (x64)
-            arch: x64
-          - os: macos-latest 
+          - name: macOS ARM64
+            os: macos-latest
+            arch: arm64
+          - name: macOS Intel
+            os: macos-15-intel
+            arch: amd64
+
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PROJECT_VERSION_NAME: "1.0.0"
 
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Set up temurin JDK
-        uses: actions/setup-java@v4
+      - name: Setup Nucleus (GraalVM)
+        uses: NucleusFramework/Nucleus/.github/actions/setup-nucleus@v2.3.0
         with:
-          distribution: 'temurin'
-          java-version: '21'
-          token: ${{ secrets.GITHUB_TOKEN }}
+          graalvm: 'true'
 
-
-      - name: Set up Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: '8.12'
-
-      - name: Generate aboutlibraries
+      - name: Build GraalVM native packages
         working-directory: FloconDesktop
-        run: ./gradlew composeApp:exportLibraryDefinitions -PaboutLibraries.outputFile=src/commonMain/composeResources/files/aboutlibraries.json
-
-      - name: Build with Gradle
-        working-directory: FloconDesktop
-        run: ./gradlew packageDistributionForCurrentOS packageUberJarForCurrentOS
+        shell: bash
         env:
-          PROJECT_VERSION_NAME: "1.0.0"
-
-      - name: Rename macOS arm64 dmg
-        if: matrix.os == 'macos-latest'
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          mv FloconDesktop/composeApp/build/compose/binaries/main/dmg/*.dmg FloconDesktop/composeApp/build/compose/binaries/main/dmg/macos-arm64.dmg
+          ./gradlew :composeApp:packageGraalvmNativeDistributionForCurrentOS \
+            -PnativeMarch=compatibility \
+            --stacktrace \
+            --no-daemon
 
-      - name: Upload macOS arm64 artifact
-        if: matrix.os == 'macos-latest'
+      - name: Upload GraalVM artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: macos-arm64-dmg
-          path: FloconDesktop/composeApp/build/compose/binaries/main/dmg/*.dmg
-
-      - name: Rename macOS x64 dmg
-        if: matrix.os == 'macos-15-intel'
-        run: |
-          mv FloconDesktop/composeApp/build/compose/binaries/main/dmg/*.dmg FloconDesktop/composeApp/build/compose/binaries/main/dmg/macos-x64.dmg
-
-      - name: Upload macOS x64 artifact
-        if: matrix.os == 'macos-15-intel'
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-x64-dmg
-          path: FloconDesktop/composeApp/build/compose/binaries/main/dmg/*.dmg
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-
-      - name: Download macOS artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-arm64-dmg
-
-      - name: Download macOS artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-x64-dmg
+          name: graalvm-flocon-${{ runner.os }}-${{ matrix.arch }}
+          path: |
+            FloconDesktop/composeApp/build/compose/binaries/**/graalvm-*/**
+          if-no-files-found: error

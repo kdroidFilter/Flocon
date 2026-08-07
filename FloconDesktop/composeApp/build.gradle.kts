@@ -1,4 +1,6 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import dev.nucleusframework.desktop.application.dsl.CompressionLevel
+import dev.nucleusframework.desktop.application.dsl.NativeImageOptimization
+import dev.nucleusframework.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
@@ -12,6 +14,7 @@ plugins {
     alias(libs.plugins.about.libraries)
 
     alias(libs.plugins.buildconfig)
+    alias(libs.plugins.nucleus)
 }
 
 buildConfig {
@@ -67,6 +70,7 @@ kotlin {
             implementation(libs.androidx.paging.common)
             implementation(libs.androidx.paging.compose)
             implementation(libs.markdown.renderer)
+            implementation(libs.composewebview)
 
             // TODO Remove
             implementation(projects.data.remote)
@@ -88,6 +92,12 @@ kotlin {
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
+            implementation(libs.nucleus.core.runtime)
+            implementation(libs.nucleus.application)
+            implementation(libs.nucleus.decorated.window.tao)
+            implementation(libs.nucleus.decorated.window.material3)
+            implementation(libs.nucleus.menu.macos)
+            implementation(libs.filekit.dialogs)
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.ktor.client.java)
             // implementation(libs.ui.tooling.preview.desktop)
@@ -103,22 +113,28 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
-compose.desktop {
+nucleus {
     application {
         mainClass = "io.github.openflocon.flocondesktop.MainKt"
 
-        buildTypes.release {
-            proguard {
-                // Active ProGuard
-                isEnabled.set(true)
-
-                configurationFiles.from(file("proguard-rules.pro"))
-            }
+        graalvm {
+            isEnabled.set(true)
+            optimization = NativeImageOptimization.SIZE
         }
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
+            targetFormats(
+                TargetFormat.Dmg,
+                TargetFormat.Nsis,
+                TargetFormat.Deb,
+                TargetFormat.Rpm,
+                TargetFormat.Zip,
+                TargetFormat.AppImage,
+                TargetFormat.Portable
+            )
             packageName = "Flocon"
+            cleanupNativeLibs = true
+            compressionLevel = CompressionLevel.Ultra
             packageVersion = System.getenv("PROJECT_VERSION_NAME") ?: "1.0.0"
             macOS {
                 iconFile.set(project.file("src/desktopMain/resources/files/flocon_big.icns"))
@@ -127,11 +143,21 @@ compose.desktop {
             }
             linux {
                 iconFile.set(project.file("src/commonMain/composeResources/drawable/app_icon_small.png"))
+                debMaintainer = "champigny.florent@gmail.com"
+                homepage = "https://github.com/openflocon"
+                // Required by FileKit (XDG Desktop Portal / DBus)
+                modules("jdk.security.auth")
+                appImage {
+                    compressionLevel = CompressionLevel.Store
+                }
             }
             windows {
                 iconFile.set(project.file("src/desktopMain/resources/files/flocon_big.ico"))
                 menu = true
                 upgradeUuid = "5c6d2b4c-360a-4135-a445-68bfa25ce450"
+                portable {
+                    compressionLevel = CompressionLevel.Store
+                }
             }
         }
     }

@@ -3,10 +3,9 @@ package io.github.openflocon.flocondesktop.features.database.processor
 import io.github.openflocon.domain.common.Either
 import io.github.openflocon.domain.common.Failure
 import io.github.openflocon.domain.common.Success
+import io.github.openflocon.domain.common.files.FilePicker
 import io.github.openflocon.domain.database.models.DatabaseQueryLogDomainModel
 import io.github.openflocon.domain.database.models.toFullSql
-import java.awt.FileDialog
-import java.awt.Frame
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -19,35 +18,16 @@ class ExportDatabaseQueryLogsToCsvProcessor {
     ): Either<Throwable, String> {
         val fileName = "database_logs_${System.currentTimeMillis()}.csv"
 
-        val file = showSaveFileDialog(defaultFileName = fileName, dialogName = "Export database logs as CSV") ?: return Failure(
-            Throwable("no file selected")
-        )
+        val file = FilePicker.pickSaveFile(
+            title = "Export database logs as CSV",
+            defaultFileName = fileName,
+        ) ?: return Failure(Throwable("no file selected"))
 
         exportToCsv(
             file = file,
             logs = logs,
         )
         return Success(file.absolutePath)
-    }
-
-    private fun showSaveFileDialog(dialogName: String, defaultFileName: String): File? {
-        val parentFrame = Frame()
-        val dialog = FileDialog(parentFrame, dialogName, FileDialog.SAVE).apply {
-            file = defaultFileName
-        }
-
-        dialog.isVisible = true 
-
-        val file = dialog.file
-        val directory = dialog.directory
-
-        parentFrame.dispose()
-
-        return if (file != null && directory != null) {
-            File(directory, file)
-        } else {
-            null
-        }
     }
 
     private fun exportToCsv(

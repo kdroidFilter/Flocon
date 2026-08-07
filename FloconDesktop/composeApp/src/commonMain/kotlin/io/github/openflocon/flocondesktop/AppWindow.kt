@@ -6,8 +6,8 @@ import androidx.compose.foundation.ComposeFoundationFlags
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flocon.data.remote.dataRemoteModule
 import io.github.openflocon.data.core.dataCoreModule
 import io.github.openflocon.data.local.dataLocalModule
@@ -17,7 +17,6 @@ import io.github.openflocon.domain.models.settings.ThemeSetting
 import io.github.openflocon.domain.settings.usecase.ObserveFontSizeMultiplierUseCase
 import io.github.openflocon.domain.settings.usecase.ObserveThemeUseCase
 import io.github.openflocon.flocondesktop.adb.AdbRepositoryImpl
-import io.github.openflocon.flocondesktop.app.AppScreen
 import io.github.openflocon.flocondesktop.app.di.appModule
 import io.github.openflocon.flocondesktop.common.di.commonModule
 import io.github.openflocon.flocondesktop.core.di.coreModule
@@ -32,7 +31,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 @Composable
-fun App() {
+fun FloconApp(content: @Composable () -> Unit) {
     ComposeFoundationFlags.isNewContextMenuEnabled = true
 
     KoinApplication(
@@ -58,9 +57,9 @@ fun App() {
         },
     ) {
         val fontSizeMultiplier by koinInject<ObserveFontSizeMultiplierUseCase>()()
-            .collectAsStateWithLifecycle()
+            .collectAsState()
         val theme by koinInject<ObserveThemeUseCase>()()
-            .collectAsStateWithLifecycle()
+            .collectAsState()
         val isDarkTheme = when (theme) {
             ThemeSetting.Dark -> true
             ThemeSetting.Light -> false
@@ -73,9 +72,8 @@ fun App() {
         FloconTheme(
             fontSizeMultiplier = fontSizeMultiplier,
             isDarkTheme = isDarkTheme,
-        ) {
-            AppScreen()
-        }
+            content = content,
+        )
 //        }
     }
 }

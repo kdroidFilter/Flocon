@@ -19,6 +19,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
             implementation(libs.androidx.paging.common)
+            implementation(libs.filekit.dialogs)
 
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)

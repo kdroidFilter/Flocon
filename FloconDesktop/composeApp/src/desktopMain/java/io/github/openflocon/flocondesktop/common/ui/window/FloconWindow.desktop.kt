@@ -10,10 +10,12 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
+import dev.nucleusframework.application.LocalNucleusApplicationScope
+import dev.nucleusframework.window.material.MaterialDecoratedWindow
+import dev.nucleusframework.window.material.MaterialTitleBar
 import flocondesktop.composeapp.generated.resources.Res
 import flocondesktop.composeapp.generated.resources.app_icon
 import io.github.openflocon.library.designsystem.components.escape.LocalEscapeHandlerStack
@@ -42,22 +44,25 @@ actual fun FloconWindow(
 ) {
     val handlers = remember { mutableStateListOf<() -> Boolean>() }
 
-    Window(
-        title = title,
-        icon = painterResource(Res.drawable.app_icon),
-        state = (state as FloconWindowStateDesktop).windowState,
-        alwaysOnTop = alwaysOnTop,
-        onPreviewKeyEvent = {
-            when (it.key) {
-                Key.Escape if (it.type == KeyEventType.KeyDown) -> handlers.lastOrNull()?.invoke() ?: false
+    with(LocalNucleusApplicationScope.current) {
+        MaterialDecoratedWindow(
+            title = title,
+            icon = painterResource(Res.drawable.app_icon),
+            state = (state as FloconWindowStateDesktop).windowState,
+            alwaysOnTop = alwaysOnTop,
+            onPreviewKeyEvent = {
+                when (it.key) {
+                    Key.Escape if (it.type == KeyEventType.KeyDown) -> handlers.lastOrNull()?.invoke() ?: false
 
-                else -> false
+                    else -> false
+                }
+            },
+            onCloseRequest = onCloseRequest,
+        ) {
+            MaterialTitleBar()
+            CompositionLocalProvider(LocalEscapeHandlerStack provides handlers) {
+                content()
             }
-        },
-        onCloseRequest = onCloseRequest,
-    ) {
-        CompositionLocalProvider(LocalEscapeHandlerStack provides handlers) {
-            content()
         }
     }
 }

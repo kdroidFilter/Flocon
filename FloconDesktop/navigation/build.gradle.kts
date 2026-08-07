@@ -42,6 +42,8 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
 
             implementation(libs.androidx.lifecycle.nav3)
+            // HostedWindow / LocalNucleusWindowHost (Tao-safe secondary windows)
+            implementation(libs.nucleus.application)
 
             api(libs.kotlinx.serialization.core)
         }

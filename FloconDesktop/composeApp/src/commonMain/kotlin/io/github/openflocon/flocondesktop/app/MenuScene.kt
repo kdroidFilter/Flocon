@@ -44,7 +44,6 @@ import io.github.openflocon.navigation.FloconRoute
 data class MenuScene(
     val scene: Scene<FloconRoute>,
     val menuContent: @Composable ((expanded: Boolean) -> Unit),
-    val topBarContent: @Composable (() -> Unit)?
 ) : Scene<FloconRoute> {
     override val key: Any = Unit
     override val entries: List<NavEntry<FloconRoute>> = scene.entries
@@ -61,7 +60,6 @@ data class MenuScene(
 
         Box {
             FloconScaffold(
-                topBar = { topBarContent?.invoke() },
                 modifier = Modifier
                     .fillMaxSize()
                     .onGloballyPositioned {
@@ -110,7 +108,6 @@ data class MenuScene(
 
 class MenuSceneStrategy(
     private val menuContent: @Composable (expanded: Boolean) -> Unit,
-    private val topBarContent: @Composable (() -> Unit)? = null
 ) : SceneDecoratorStrategy<FloconRoute> {
 
     override fun SceneDecoratorStrategyScope<FloconRoute>.decorateScene(scene: Scene<FloconRoute>): Scene<FloconRoute> {
@@ -118,7 +115,6 @@ class MenuSceneStrategy(
             return MenuScene(
                 scene = scene,
                 menuContent = menuContent,
-                topBarContent = topBarContent
             )
         }
 

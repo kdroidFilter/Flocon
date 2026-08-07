@@ -12,19 +12,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.WindowPlacement
-import androidx.compose.ui.window.WindowPosition
-import androidx.compose.ui.window.rememberWindowState
 import flocondesktop.composeapp.generated.resources.Res
 import flocondesktop.composeapp.generated.resources.app_icon
 import io.github.openflocon.flocondesktop.BuildConfig
+import io.github.openflocon.flocondesktop.common.ui.window.FloconWindow
+import io.github.openflocon.flocondesktop.common.ui.window.createFloconWindowState
 import io.github.openflocon.flocondesktop.common.utils.openInBrowser
 import io.github.openflocon.library.designsystem.FloconTheme
 import io.github.openflocon.library.designsystem.components.FloconSurface
@@ -36,14 +34,14 @@ import java.net.URI
 internal fun AboutScreen(
     onCloseRequest: () -> Unit
 ) {
-    Window(
+    val windowState = remember {
+        createFloconWindowState(size = DpSize(width = 440.dp, height = 520.dp))
+    }
+
+    FloconWindow(
         title = "About",
+        state = windowState,
         onCloseRequest = onCloseRequest,
-        state = rememberWindowState(
-            placement = WindowPlacement.Floating,
-            position = WindowPosition(Alignment.Center),
-            size = DpSize(Dp.Unspecified, Dp.Unspecified)
-        )
     ) {
         FloconSurface {
             Column(

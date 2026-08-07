@@ -1,11 +1,9 @@
 package io.github.openflocon.flocondesktop.features.network.mock.processor
 
 import co.touchlab.kermit.Logger
+import io.github.openflocon.domain.common.files.FilePicker
 import io.github.openflocon.domain.network.models.MockNetworkDomainModel
 import kotlinx.serialization.json.Json
-import java.awt.FileDialog
-import java.awt.Frame
-import java.io.File
 import java.io.FileNotFoundException
 
 sealed interface ImportResult {
@@ -22,7 +20,10 @@ class ImportMocksProcessor {
     }
 
     suspend operator fun invoke(): ImportResult {
-        val selectedFile = showOpenFileDialog(dialogName = "Importer les Mocks JSON")
+        val selectedFile = FilePicker.pickOpenFile(
+            title = "Importer les Mocks JSON",
+            extensions = listOf("json"),
+        )
 
         if (selectedFile == null) {
             Logger.d("Importing cancelled")
@@ -30,7 +31,7 @@ class ImportMocksProcessor {
         }
 
         val jsonString = try {
-            selectedFile.readText() // Extension Kotlin pour lire le texte
+            selectedFile.readText()
         } catch (e: FileNotFoundException) {
             Logger.e("File not found during import", e)
             return ImportResult.Failure(e)
@@ -39,7 +40,6 @@ class ImportMocksProcessor {
             return ImportResult.Failure(e)
         }
 
-        // 3. Désérialiser et mapper vers le DomainModel
         val domainMocks = try {
             val exportedMocks: List<MockNetworkExportedModel> = json.decodeFromString(jsonString)
 
@@ -50,25 +50,5 @@ class ImportMocksProcessor {
         }
 
         return ImportResult.Success(domainMocks)
-    }
-}
-
-private fun showOpenFileDialog(dialogName: String): File? {
-    val parentFrame = Frame()
-    val dialog = FileDialog(parentFrame, dialogName, FileDialog.LOAD).apply {
-        filenameFilter = java.io.FilenameFilter { _, name -> name.endsWith(".json", ignoreCase = true) }
-    }
-
-    dialog.isVisible = true // Bloque jusqu'à ce que la boîte de dialogue soit fermée
-
-    val file = dialog.file
-    val directory = dialog.directory
-
-    parentFrame.dispose()
-
-    return if (file != null && directory != null) {
-        File(directory, file)
-    } else {
-        null
     }
 }

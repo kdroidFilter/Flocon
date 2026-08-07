@@ -11,18 +11,27 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.SwingPanel
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import dev.nucleusframework.webview.web.WebView
+import dev.nucleusframework.webview.web.rememberWebViewStateWithHTMLData
 import io.github.openflocon.flocondesktop.features.dashboard.model.DashboardContainerViewState
 import io.github.openflocon.library.designsystem.FloconTheme
-import javax.swing.JEditorPane
 
+/**
+ * Renders dashboard HTML via Nucleus ComposeNativeWebView (Tao NativeView).
+ * Replaces SwingPanel + JEditorPane, which is unsupported on the Tao backend.
+ */
 @Composable
 internal fun DashboardHtmlView(
     modifier: Modifier = Modifier,
     rowItem: DashboardContainerViewState.RowItem.Html,
 ) {
+    val webViewState = rememberWebViewStateWithHTMLData(
+        data = rowItem.value,
+    )
+
     Column(
         modifier = modifier.fillMaxWidth(),
     ) {
@@ -39,23 +48,16 @@ internal fun DashboardHtmlView(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    color = FloconTheme.colorPalette.secondary,
-                    shape = RoundedCornerShape(8.dp),
-                )
+                .height(600.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(FloconTheme.colorPalette.secondary)
                 .padding(8.dp),
         ) {
-            SwingPanel(
-                modifier = Modifier.fillMaxWidth().height(600.dp), // Height needs to be fixed or dynamic
-                factory = {
-                    JEditorPane().apply {
-                        contentType = "text/html"
-                        isEditable = false
-                    }
-                },
-                update = {
-                    it.text = rowItem.value
-                }
+            WebView(
+                state = webViewState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(584.dp),
             )
         }
     }
