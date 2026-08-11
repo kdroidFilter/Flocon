@@ -30,9 +30,11 @@ import dev.nucleusframework.application.nucleusApplication
 import dev.nucleusframework.menu.macos.NativeMenuBar
 import dev.nucleusframework.window.DecoratedWindowScope
 import dev.nucleusframework.window.TitleBarLayoutPolicy
+import dev.nucleusframework.window.macOSLargeCornerRadius
 import dev.nucleusframework.window.material.MaterialDecoratedWindow
 import dev.nucleusframework.window.material.MaterialTitleBar
 import dev.nucleusframework.window.material.rememberMaterialTitleBarStyle
+import dev.nucleusframework.window.newFullscreenControls
 import flocondesktop.composeapp.generated.resources.Res
 import flocondesktop.composeapp.generated.resources.app_icon_small
 import io.github.openflocon.domain.feedback.FeedbackDisplayer
@@ -146,7 +148,7 @@ private fun DecoratedWindowScope.MainWindowContent() {
     val viewModel = koinViewModel<AppViewModel>()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    MaterialTitleBar(layoutPolicy = TitleBarLayoutPolicy.FillCenter) {
+    MaterialTitleBar(layoutPolicy = TitleBarLayoutPolicy.FillCenter, modifier = Modifier.newFullscreenControls().macOSLargeCornerRadius()) {
         MainScreenTopBar(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             devicesState = uiState.deviceState,
