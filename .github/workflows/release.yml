@@ -31,10 +31,10 @@ jobs:
           - name: macOS ARM64
             os: macos-latest
             arch: arm64
-          # macOS Intel: GraalVM may fall back to an older GA build (no macos-x64 on latest feature releases)
-          - name: macOS Intel
-            os: macos-15-intel
-            arch: amd64
+          # macOS Intel is intentionally excluded: GraalVM CE ships no macos-x64 build for the
+          # current feature release, so the toolchain falls back to Liberica NIK (graal 25.0 base),
+          # whose native-image cannot compile Netty's java.lang.foreign malloc downcall
+          # (VMError: unexpected input could not be handled: linkToNative).
 
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
