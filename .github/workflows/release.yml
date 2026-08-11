@@ -67,11 +67,19 @@ jobs:
         # GraalVM CE is resolved via the GitHub releases API — authenticate to avoid rate limits.
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        # packageGraalvmNativeDistributionForCurrentOS packages every configured targetFormat
-        # for the current OS (Deb/Rpm/AppImage/Zip on Linux, Dmg/Zip on macOS, Nsis/Zip on Windows).
+        # packageGraalvmNativeDistributionForCurrentOS only builds the app folder — it does not
+        # wire the per-format tasks. Installers must be requested explicitly, as the upstream
+        # Nucleus release-graalvm pipeline does.
         # -PnativeMarch=compatibility: portable binary (same as Nucleus release-graalvm).
         run: |
-          ./gradlew :composeApp:packageGraalvmNativeDistributionForCurrentOS \
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            TASKS=":composeApp:packageGraalvmDeb :composeApp:packageGraalvmRpm :composeApp:packageGraalvmAppImage"
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            TASKS=":composeApp:packageGraalvmDmg"
+          else
+            TASKS=":composeApp:packageGraalvmNsis :composeApp:packageGraalvmPortable"
+          fi
+          ./gradlew $TASKS \
             -PnativeMarch=compatibility \
             --stacktrace \
             --no-daemon
@@ -120,8 +128,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p release-assets
-          # Installers + optional detached signatures / update yml (same set as Nucleus release-graalvm)
-          find artifacts -type f \( \
+          # Installers + optional detached signatures / update yml (same set as Nucleus release-graalvm).
+          # graalvm-app/ holds the unpackaged distributable — its raw launcher would otherwise be
+          # collected as if it were the Windows installer.
+          find artifacts -type f -not -path '*/graalvm-app/*' \( \
             -name '*.deb' -o -name '*.rpm' -o -name '*.asc' -o \
             -name '*.AppImage' -o -name '*.appimage' -o \
             -name '*.dmg' -o -name '*.exe' -o -name '*.zip' -o \
