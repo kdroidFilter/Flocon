@@ -148,7 +148,7 @@ nucleus {
                 // Required by FileKit (XDG Desktop Portal / DBus)
                 modules("jdk.security.auth")
                 appImage {
-                    compressionLevel = CompressionLevel.Store
+                    compressionLevel = CompressionLevel.Normal
                 }
             }
             windows {
@@ -156,7 +156,7 @@ nucleus {
                 menu = true
                 upgradeUuid = "5c6d2b4c-360a-4135-a445-68bfa25ce450"
                 portable {
-                    compressionLevel = CompressionLevel.Store
+                    compressionLevel = CompressionLevel.Normal
                 }
             }
         }

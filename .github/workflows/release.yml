@@ -75,7 +75,8 @@ jobs:
           if [ "$RUNNER_OS" = "Linux" ]; then
             TASKS=":composeApp:packageGraalvmDeb :composeApp:packageGraalvmRpm :composeApp:packageGraalvmAppImage"
           elif [ "$RUNNER_OS" = "macOS" ]; then
-            TASKS=":composeApp:packageGraalvmDmg"
+            # Zip carries the macOS self-update payload (and its latest-mac.yml manifest).
+            TASKS=":composeApp:packageGraalvmDmg :composeApp:packageGraalvmZip"
           else
             TASKS=":composeApp:packageGraalvmNsis :composeApp:packageGraalvmPortable"
           fi
